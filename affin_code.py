@@ -1,11 +1,8 @@
 from sympy import symbols, Poly
-
 from main import GaloisField
 
 alphabet = "abcdefghijklmnopqrstuvwxyz "
 
-
-# y_i=αx_i+β, i=¯(1,l).
 
 def encoder(alpha, beta, text):
     gf = GaloisField(3, 3)
@@ -31,7 +28,6 @@ def encoder(alpha, beta, text):
 
 def decoder(alpha, beta, shifr_text):
     gf = GaloisField(3, 3)
-    text = []
 
     alphabet_galois = {w: z for w, z in zip(alphabet, gf.field)}
     minus_beta = [(-i) % gf.p for i in beta]
@@ -49,20 +45,21 @@ def decoder(alpha, beta, shifr_text):
         decode_symbol = alphabet[list(alphabet_galois.values()).index(galois_symbol)]
         ans.append(decode_symbol)
 
-
     ans = ''.join(ans)
     return ans
 
-# if __name__ == '__main__':
+
+
 x = symbols('x')
 print(f'Такой алфавит вы используетет: {alphabet}')
-alpha = Poly(input('Введите alpha : '), x, domain='ZZ')
-beta = Poly(input('Введите beta : '), x, domain='ZZ')
+alpha_interface = Poly(input('Введите alpha из мультипликативной группы Галуа F(3)^3 : '), x, domain='ZZ')
+beta_interface = Poly(input('Введите beta из поля Галуа: '), x, domain='ZZ')
 
-alpha = abs(3 - len(alpha.all_coeffs())) * [0] + alpha.all_coeffs()
-beta = abs(3 - len(beta.all_coeffs())) * [0] + beta.all_coeffs()
-print(alpha, beta)
-a = encoder(alpha, beta, 'aloxa privet')
-print(a)
-b = decoder(alpha, beta, a)
-print(b)
+alpha_interface = abs(3 - len(alpha_interface.all_coeffs())) * [0] + alpha_interface.all_coeffs()
+beta_interface = abs(3 - len(beta_interface.all_coeffs())) * [0] + beta_interface.all_coeffs()
+text_interface = input('Введите текст, который хотите зашифровать: ')
+a = encoder(alpha_interface, beta_interface, text_interface)
+print(f'Зашифрованный текст: {a}')
+shifr_text_interface = input('Введите текст, который хотите расшифровать: ')
+b = decoder(alpha_interface, beta_interface, shifr_text_interface)
+print(f'Расшифрованный текст: {b}')

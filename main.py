@@ -1,68 +1,70 @@
 from itertools import product
-
 import numpy as np
 from sympy import symbols, Poly, factor, divisors, factorint, div, simplify
+
+
+def mobius(n):
+    """Реализация функции мебиуса для поиска неприводимого многочлена"""
+
+    if n == 1:
+        return 1
+
+    factorization = factorint(n)
+    k = len(factorization)
+
+    if any(exp > 1 for exp in factorization.values()):
+        return 0
+
+    return (-1) ** k
 
 
 class GaloisField:
     x = symbols('x')
 
-    def __init__(self, p, n):
+    def __init__(self, p: int, n: int):
         self.p = p
         self.n = n
-        self.elements = [i for i in range(p)]
+        self.elements = [k for k in range(p)]
         self.field = list(map(list, product(self.elements, repeat=self.n)))
 
     def polynomial_generator(self) -> list:
         """Генерирует многочлены, у которых в старшей степени коэффициент не ноль"""
+
         polynomials = product(range(self.p), repeat=self.n + 1)
         suitable = [poly for poly in polynomials if poly[0] != 0]
 
         return suitable
 
-    def mobius(self, n):
-        x = symbols('x')
-
-        if n == 1:
-            return 1
-
-        factorization = factorint(n)
-        k = len(factorization)
-
-        if any(exp > 1 for exp in factorization.values()):
-            return 0
-
-        return (-1) ** k
-
     def evaluate_polynomial(self, poly: list) -> bool:
         """Проверяет многочлен на неприводимость"""
-        x = symbols('x')
-        for a in range(self.p):
+
+        x_eval = symbols('x')
+        for integer in range(self.p):
             result = 0
-            for i, coef in enumerate(reversed(poly)):
-                result += coef * (a ** i)
+            for j, coeff in enumerate(reversed(poly)):
+                result += coeff * (integer ** j)
             result %= self.p
             if result == 0:
                 return False
 
-        poly_new = Poly(poly, x)
-        n = poly_new.degree()
+        poly_new = Poly(poly, x_eval)
+        max_degree_poly = poly_new.degree()
 
-        product = 1
-        if n < 3:
+        composition = 1
+        if max_degree_poly < 3:
             return True
-        for d in divisors(n):
-            a = (x ** (self.p ** (n // d)) - x) ** self.mobius(d)
-            product *= a
+        for d in divisors(max_degree_poly):
+            res_local_compose = (x_eval ** (self.p ** (max_degree_poly // d)) - x_eval) ** mobius(d)
+            composition *= res_local_compose
 
-        product = simplify(factor(product))
-        product = Poly(product, x)
+        composition = simplify(factor(composition))
+        composition = Poly(composition, x_eval)
 
-        return div(product, poly_new)[1] != 0
+        return div(composition, poly_new)[1] != 0
 
     def find_irreducible_polynomials(self) -> list:
         """Возвращает неприводимые многочлены"""
-        x = symbols('x')
+
         irreducible_polynomials = []
         polynomials = self.polynomial_generator()
         k = 0
@@ -73,82 +75,37 @@ class GaloisField:
 
         return irreducible_polynomials
 
-    # def find_degree(self, poly: list) -> list:
-    #     """Находит x^n из неприводимого многочлена"""
-    #     length = len(poly)
-    #     first_part = poly[0]
-    #
-    #     if first_part == 1:
-    #         return [-poly[i] % self.p for i in range(1, length)]
-    #     else:
-    #         new_poly = [-poly[i] % self.p for i in range(1, length)]
-    #         ans = []
-    #         for element in new_poly:
-    #             n = 0
-    #             dividend = (element + self.p * n) / first_part
-    #             while int(dividend) - dividend != 0:
-    #                 n += 1
-    #                 dividend = (element + self.p * n) / first_part
-    #             ans.append(int(dividend))
-    #         return ans
+    def compute_element_orders(self, irr_poly: list) -> dict:
+        """Возвращает словарь порядков всех элементов"""
 
-    def __add__(self, poly1: list, poly2: list):
-        """Реализует операцию сложения по модулю p"""
-        poly1 = np.array(poly1)
-        poly2 = np.array(poly2)
-        return list((poly1 + poly2) % self.p)
-
-    # def __mul__(self, poly1: list, poly2: list, irreducible_poly: list) -> list:
-    #     """Реализует операцию умножения двух многочленов с помощью неприводимого многочлена"""
-    #     x = symbols('x')
-    #
-    #     poly1_sym = Poly(poly1, x, domain='ZZ')
-    #     poly2_sym = Poly(poly2, x, domain='ZZ')
-    #
-    #     result = (poly1_sym * poly2_sym).as_expr()
-    #
-    #     new_result = result.replace(x ** len(irreducible_poly), Poly(irreducible_poly, x, domain='ZZ').as_expr())
-    #     new_result = Poly(new_result, x, domain='ZZ').all_coeffs()
-    #     # plen = len(new_result)
-    #     # if plen > 3:
-    #     #     print(new_result, plen, poly1, poly2, irreducible_poly)
-    #     #     while True:
-    #     #         pass
-    #
-    #     new_result = abs((len(poly1)) - len(new_result)) * [0] + new_result
-    #     # print(len(new_result))
-    #     new_result = [element % self.p for element in new_result]
-    #     return new_result
-
-    def compute_element_orders(self, irr_poly):
-        x = symbols('x')
-        element_orders = {}
+        orders_elements = {}
         n = 0
         for element in self.field[1:]:
 
             const_x = element.copy()
-            order = 1
-            current = self.__mul__(const_x, const_x, irr_poly)
+            counter = 1
+            dynamic_poly = self.__mul__(const_x, const_x, irr_poly)
             n += 1
-            while current != element:
-                current = self.__mul__(current, const_x, irr_poly)
-                order += 1
+            while dynamic_poly != element:
+                dynamic_poly = self.__mul__(dynamic_poly, const_x, irr_poly)
+                counter += 1
 
-            element_orders[tuple(element)] = order
+            orders_elements[tuple(element)] = counter
 
-        return element_orders
+        return orders_elements
 
-    def __mul__(self, polyforst, poly2, irr_poly):
+    def __mul__(self, first_poly, second_poly, irr_poly):
+        """Операция умножения многочленов путем деления многочлена на неприводимый и взятие остатка"""
 
-        x = symbols('x')
-        poly1 = Poly(polyforst, x)
-        poly2 = Poly(poly2, x)
-        res = (poly1 * poly2).all_coeffs()
+        x_mul = symbols('x')
+        poly1 = Poly(first_poly, x_mul)
+        second_poly = Poly(second_poly, x_mul)
+        res = (poly1 * second_poly).all_coeffs()
         new_result = [element % self.p for element in res]
-        new_result = Poly(new_result, x)
-        irr_poly = Poly(irr_poly, x)
+        new_result = Poly(new_result, x_mul)
+        irr_poly = Poly(irr_poly, x_mul)
         new_result = div(new_result, irr_poly)[1].all_coeffs()
-        new_result = abs((len(polyforst)) - len(new_result)) * [0] + new_result
+        new_result = abs((len(first_poly)) - len(new_result)) * [0] + new_result
 
         ans = []
         for element in new_result:
@@ -166,14 +123,22 @@ class GaloisField:
 
         return ans
 
+    def __add__(self, poly1: list, poly2: list):
+        """Реализует операцию сложения по модулю p"""
+
+        poly1 = np.array(poly1)
+        poly2 = np.array(poly2)
+        return list((poly1 + poly2) % self.p)
+
     def __str__(self):
+        """Дает возможность вызывать функцию print() на класс"""
         return str(list(map(list, product(self.elements, repeat=self.n))))
 
 
 if __name__ == '__main__':
     x = symbols('x')
-    p, n = int(input("Введите простое число p: ")), int(input("Введите натуральное число n: "))
-    gf = GaloisField(p, n)
+    a, b = int(input("Введите простое число p: ")), int(input("Введите натуральное число n: "))
+    gf = GaloisField(a, b)
 
     print(f"Элементы поля: {[Poly(element, x, domain='ZZ').as_expr() for element in gf.field]}")
     irr_polys = gf.find_irreducible_polynomials()
@@ -192,7 +157,7 @@ if __name__ == '__main__':
     primitives = []
     for element, order in element_orders.items():
         print(f"Элемент {Poly(element, x, domain='ZZ').as_expr()}: порядок {order}")
-        if order == p ** n - 1:
+        if order == gf.p ** gf.n - 1:
             primitives.append(element)
 
     print("\nТеперь выберите образующий элемент для разложения по степеням из"
@@ -223,8 +188,8 @@ if __name__ == '__main__':
     first_poly_add = Poly(input('Введи первый полином в формате a1*x**n + a2*x**(n-1) ... an*x**0 : '), x, domain='ZZ')
     second_poly_add = Poly(input('Введи второй полином в формате a1*x**n + a2*x**(n-1) ... an*x**0 : '), x, domain='ZZ')
 
-    first_poly_add = abs(gf.p - len(first_poly_add.all_coeffs()) - 1) * [0] + first_poly_add.all_coeffs()
-    second_poly_add = abs(gf.p - len(second_poly_add.all_coeffs()) - 1) * [0] + second_poly_add.all_coeffs()
+    first_poly_add = abs(gf.n - len(first_poly_add.all_coeffs())) * [0] + first_poly_add.all_coeffs()
+    second_poly_add = abs(gf.n - len(second_poly_add.all_coeffs())) * [0] + second_poly_add.all_coeffs()
 
     if first_poly_add not in gf.field or second_poly_add not in gf.field:
         raise ValueError('Введите многочлены из поля Галуа')
