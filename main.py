@@ -1,6 +1,6 @@
 from itertools import product
 import numpy as np
-from sympy import symbols, Poly, factor, divisors, factorint, div, simplify
+from sympy import symbols, Poly, factor, divisors, factorint, div, simplify, rem, trunc
 
 
 def mobius(n):
@@ -39,13 +39,13 @@ class GaloisField:
         """Проверяет многочлен на неприводимость"""
 
         x_eval = symbols('x')
-        for integer in range(self.p):
-            result = 0
-            for j, coeff in enumerate(reversed(poly)):
-                result += coeff * (integer ** j)
-            result %= self.p
-            if result == 0:
-                return False
+        # for integer in range(self.p):
+        #     result = 0
+        #     for j, coeff in enumerate(reversed(poly)):
+        #         result += coeff * (integer ** j)
+        #     result %= self.p
+        #     if result == 0:
+        #         return False
 
         poly_new = Poly(poly, x_eval)
         max_degree_poly = poly_new.degree()
@@ -60,7 +60,23 @@ class GaloisField:
         composition = simplify(factor(composition))
         composition = Poly(composition, x_eval)
 
-        return div(composition, poly_new)[1] != 0
+        r_old = div(composition, poly_new)[1]
+        r = r_old.all_coeffs()
+        ans = []
+        for element in r:
+
+            n = 0
+            if isinstance(element, int):
+                ans.append(element % self.p)
+            else:
+                dividend = (element.p + self.p * n) * element.q
+                while not isinstance(dividend, int):
+                    n += 1
+                    dividend = (element.p + self.p * n) / element.q
+                dividend %= self.p
+                ans.append(int(dividend))
+
+        return not sum(ans)
 
     def find_irreducible_polynomials(self) -> list:
         """Возвращает неприводимые многочлены"""
@@ -134,6 +150,20 @@ class GaloisField:
     def __str__(self):
         """Дает возможность вызывать функцию print() на класс"""
         return str(list(map(list, product(self.elements, repeat=self.n))))
+
+
+# def riii(p,n):
+#     gf = GaloisField(p,n)
+#     for el in gf.field:
+#         poly = '1' + el
+#         t = True
+#         if t:
+#             for i in range(p-1, len(gf.field)):
+#                 if gf_divide(poly, gf[i], p, n) and gf_divide(poly, gf[i], p, n)[1] == '0' * n:
+#                     t = False
+#                     break
+#             if t:
+#                 return poly
 
 
 if __name__ == '__main__':

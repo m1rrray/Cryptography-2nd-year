@@ -1,4 +1,4 @@
-from sympy import symbols, Poly
+from sympy import symbols, Poly, factor, primitive, simplify, div
 from main import GaloisField
 
 alphabet = "abcdefghijklmnopqrstuvwxyz "
@@ -63,3 +63,5 @@ print(f'Зашифрованный текст: {a}')
 shifr_text_interface = input('Введите текст, который хотите расшифровать: ')
 b = decoder(alpha_interface, beta_interface, shifr_text_interface)
 print(f'Расшифрованный текст: {b}')
+
+
