@@ -85,6 +85,7 @@ class GaloisField:
             const_x = element.copy()
             counter = 1
             dynamic_poly = self.__mul__(const_x, const_x, irr_poly)
+
             n += 1
             while dynamic_poly != element:
                 dynamic_poly = self.__mul__(dynamic_poly, const_x, irr_poly)
