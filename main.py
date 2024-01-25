@@ -1,6 +1,6 @@
 from itertools import product
 import numpy as np
-from sympy import symbols, Poly, factor, divisors, factorint, div, simplify, rem, trunc
+from sympy import symbols, Poly, factor, divisors, factorint, div, simplify
 
 
 def mobius(n):
@@ -39,14 +39,6 @@ class GaloisField:
         """Проверяет многочлен на неприводимость"""
 
         x_eval = symbols('x')
-        # for integer in range(self.p):
-        #     result = 0
-        #     for j, coeff in enumerate(reversed(poly)):
-        #         result += coeff * (integer ** j)
-        #     result %= self.p
-        #     if result == 0:
-        #         return False
-
         poly_new = Poly(poly, x_eval)
         max_degree_poly = poly_new.degree()
 
@@ -60,8 +52,8 @@ class GaloisField:
         composition = simplify(factor(composition))
         composition = Poly(composition, x_eval)
 
-        r_old = div(composition, poly_new)[1]
-        r = r_old.all_coeffs()
+        r = div(composition, poly_new)[1].all_coeffs()
+
         ans = []
         for element in r:
 
@@ -117,10 +109,13 @@ class GaloisField:
         x_mul = symbols('x')
         poly1 = Poly(first_poly, x_mul)
         second_poly = Poly(second_poly, x_mul)
+
         res = (poly1 * second_poly).all_coeffs()
         new_result = [element % self.p for element in res]
         new_result = Poly(new_result, x_mul)
+
         irr_poly = Poly(irr_poly, x_mul)
+
         new_result = div(new_result, irr_poly)[1].all_coeffs()
         new_result = abs((len(first_poly)) - len(new_result)) * [0] + new_result
 
@@ -150,20 +145,6 @@ class GaloisField:
     def __str__(self):
         """Дает возможность вызывать функцию print() на класс"""
         return str(list(map(list, product(self.elements, repeat=self.n))))
-
-
-# def riii(p,n):
-#     gf = GaloisField(p,n)
-#     for el in gf.field:
-#         poly = '1' + el
-#         t = True
-#         if t:
-#             for i in range(p-1, len(gf.field)):
-#                 if gf_divide(poly, gf[i], p, n) and gf_divide(poly, gf[i], p, n)[1] == '0' * n:
-#                     t = False
-#                     break
-#             if t:
-#                 return poly
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-from sympy import symbols, Poly, factor, primitive, simplify, div
+from sympy import symbols, Poly
 from main import GaloisField
 
 alphabet = "abcdefghijklmnopqrstuvwxyz "
