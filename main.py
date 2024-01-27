@@ -43,8 +43,6 @@ class GaloisField:
         max_degree_poly = poly_new.degree()
 
         composition = 1
-        if max_degree_poly < 3:
-            return True
         for d in divisors(max_degree_poly):
             res_local_compose = (x_eval ** (self.p ** (max_degree_poly // d)) - x_eval) ** mobius(d)
             composition *= res_local_compose
