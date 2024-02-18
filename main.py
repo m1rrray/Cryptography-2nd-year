@@ -68,7 +68,7 @@ class GaloisField:
 
         return not sum(ans)
 
-    def find_irreducible_polynomials(self) -> list:
+    def find_irreducible_polynomials(self, fastest_method=False) -> list:
         """Возвращает неприводимые многочлены"""
 
         irreducible_polynomials = []
@@ -76,6 +76,8 @@ class GaloisField:
         k = 0
         for poly in polynomials:
             if self.evaluate_polynomial(poly):
+                if fastest_method:
+                    return [poly]
                 k += 1
                 irreducible_polynomials.append(poly)
 
