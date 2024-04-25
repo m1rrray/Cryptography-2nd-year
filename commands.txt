@@ -1,0 +1,8 @@
+python main.py encrypt --input input.txt --e 11 --n 3233 --output output.txt
+
+python main.py decrypt --input input.txt --d 851 --n 3233 --output output.txt
+
+python main.py genkey --p 61 --q 53
+
+Открытый ключ: (11, 3233)
+Закрытый ключ: (851, 3233)
